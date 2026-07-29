@@ -20,7 +20,6 @@
 "use strict";
 
 const path = require("path");
-const fs = require("fs");
 
 const DATA_DIR = path.join(__dirname, "data");
 const manifest = require(path.join(DATA_DIR, "manifest.json"));
@@ -83,7 +82,11 @@ function loadShard(shardIndex) {
 
   const shardMeta = shardRanges[shardIndex];
   const shardPath = path.join(DATA_DIR, shardMeta.file);
-  const records = JSON.parse(fs.readFileSync(shardPath, "utf8"));
+  // نستخدم require() بدلاً من fs.readFileSync هنا عن قصد: نظام تجميع الدوال
+  // في Netlify (esbuild / zip-it-and-ship-it) يتتبع استدعاءات require()
+  // ذات المسارات الديناميكية تلقائيًا ويُدرج الملفات المطابقة ضمن حزمة
+  // النشر، بعكس fs.readFileSync التي لا يتم تتبعها بنفس الطريقة.
+  const records = require(shardPath);
 
   const students = new Array(records.length);
   const byId = new Map();
